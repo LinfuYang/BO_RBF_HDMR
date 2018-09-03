@@ -1,5 +1,5 @@
 from HDMR import RBF_HDMR
-from Objective_function import Func_3d
+from Objective_function import Func_Nd
 from collections import OrderedDict
 import numpy as np
 from pyGPGO.GPGO import GPGO
@@ -8,25 +8,24 @@ from pyGPGO.acquisition import Acquisition
 from pyGPGO.covfunc import matern52
 import warnings
 
-f_objective = Func_3d.sin_3d()
+f_objective = Func_Nd.xinba(input_dim=10)
 rbf_hdmr = RBF_HDMR.Rbf_Hdmr(f_objective)
 
 # 其变量取值区间
 x_round = f_objective.bounds
 
 # 计算x0,f0。第一种选择方法，随机选取
+
 x0, f0 = rbf_hdmr.x0_fx0()
-print('center cut point:', x0)
-print('center cut function', f0)
+print(x0)
+print(f0)
 
 point_round, f_values, type_fx, xishu_arr = rbf_hdmr.func_DEMO()
 
-print('**************************一阶函数模型参数*******************************')
-
-print('采集点', point_round)
-print('采集点的函数值', f_values)
-print('函数类型', type_fx)
-print('系数矩阵', xishu_arr)
+# print(point_round)
+# print(f_values)
+# print(type_fx)
+# print(xishu_arr)
 # 查看一阶模型的精度情况
 is_True = rbf_hdmr.simulation_func()
 # print(is_True)
@@ -35,10 +34,10 @@ if is_True == False:
     # 由于我们规定，任何一种变量只能与其他某一种变量发生一次相关系，即 没一个变量的下标在x_ij_index数组中最多可以出现一次
     x_ij_index, x_ij_point, x_ij_value, x_ij_xishu = rbf_hdmr.f_Two_index()
 
-    print(x_ij_index)
-    print(x_ij_point)
-    print(x_ij_value)
-    print(x_ij_xishu)
+    # print(x_ij_index)
+    # print(x_ij_point)
+    # print(x_ij_value)
+    # print(x_ij_xishu)
 
     # 先判断哪些自变量是与其他自变量无关的
     # 整合相关自变量的数组
@@ -707,12 +706,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
 import random
 
 num = 50
-# a 表示的是所有函数累加起来的长度，a -1 表示函数下标
-a = -1
-if is_True == True:
-    a = len(type_fx) - 1
-else:
-    a = len(type_fx) + len(x_ij_index) - 1
+a = len(type_fx) + len(x_ij_index) - 1
 print(a)
 
 x_ending = x0

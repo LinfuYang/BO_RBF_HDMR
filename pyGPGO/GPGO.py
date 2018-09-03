@@ -219,7 +219,7 @@ class GPGO:
         if not resume:
             self.init_evals = init_evals
             self._firstRun(self.init_evals)
-            self.logger._printInit(self)
+            # self.logger._printInit(self)
 
         # 定义一个空数组，用于保存每次迭代选择出的最优值
         self.shuzu = []
@@ -228,4 +228,4 @@ class GPGO:
 
             self._optimizeAcq(n_start=nstart)
             self.updateGP()
-            self.logger._printCurrent(self)
+            # self.logger._printCurrent(self)

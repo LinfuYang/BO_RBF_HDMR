@@ -16,13 +16,14 @@ class Rbf_Hdmr:
             self.func_mode = func_objective
             self.X_round = func_objective.bounds
 
-    # 初始值的选择，观点一，随机采点，观点二，使用平均函数值的点
+    # 初始值的选择，观点一，随机采点，观点二，使用平均函数值的点, 观点三，在取值区间的中心范围内找点
     def x0_fx0(self):
         # Step 1  定义x0, f0
         m = len(self.X_round)
         self.x0 = np.zeros((m))
         for i in range(m):
-            self.x0[i] = round(random.uniform(self.X_round[i][0], self.X_round[i][1]), 2)
+            vari_range = self.X_round[i][1] - self.X_round[i][0]
+            self.x0[i] = round(self.X_round[i][0] + vari_range / 2 + random.uniform(-vari_range * 0.01, vari_range * 0.01), 2)
         self.f0 = self.func_mode.f(self.x0)
 
         return self.x0, self.f0
@@ -203,15 +204,20 @@ class Rbf_Hdmr:
 
     # 在函数是非线性函数的基础上进行抽样根据函数是不是线性函数进行抽样
     def sample_point(self,  round_x, point_x):
-        point_arr = np.array(point_x)
+
         point = round(random.uniform(round_x[0], round_x[1]), 2)
         # print('point_arr:', point_arr)
         # print('point:', point)
         flag = True
+        vari_range = (round_x[1] - round_x[0]) * 0.01
         while flag:
-            if point in point_arr:
+            flag_temp = -1
+            for ran_index in point_x:
+                if point >= ran_index - vari_range and point <= ran_index + vari_range:
+                    flag_temp = 1
+            # print('flage_temp:', flag_temp)
+            if flag_temp == 1:
                 point = round(random.uniform(round_x[0], round_x[1]), 2)
-                flag = True
             else:
                 flag = False
 
@@ -226,54 +232,52 @@ class Rbf_Hdmr:
         :param k: 表示在x0 中第几位需要改变
         :return:
         '''
-        # 将数转化为列表，便于添加元素
-        point_x = point_x_begin.copy()
-
+        point_x = point_x_begin.copy()          # 将数转化为列表，便于添加元素
         point_x.append(round(self.x0[k], 2))
 
         # print('point_x:', point_x)
         # print('point_x:', np.array(point_x))
 
-        x_exchange = self.exchange_point_1D(point_x, k)  # 变为三维采样点， 数组
-
+        x_exchange = self.exchange_point_1D(point_x, k)  # 变为三维采样点， 数组,其他维度不改变，只改变当前维度
         # print('x_exchange:', x_exchange)
-        # 计算对应的一维函数的函数值(精确值) # 数组
-        fx_2 = self.fun_value_1D(x_exchange)
 
+        fx_2 = self.fun_value_1D(x_exchange)            # 计算对应的一维函数的函数值(精确值) # 数组
         # print('fx_2:', fx_2)
-        # 根据左右端点, 判断该函数是不是线性函数,
-        One = round((fx_2[-1] - fx_2[1]) / (point_x[-1] - point_x[1]), 6)
-        Two = round((fx_2[1] - fx_2[0]) / (point_x[1] - point_x[0]), 6)
+
+        One = round((fx_2[-1] - fx_2[1]) / (point_x[-1] - point_x[1]), 4)           # 根据左右端点, 判断该函数是不是线性函数,
+        Two = round((fx_2[1] - fx_2[0]) / (point_x[1] - point_x[0]), 4)
         # print('One', One)
         # print('Two', Two)
-        # 1D线性情况
-        if One == Two:
+
+        if One == Two:          # 1D线性情况
             type_f = 'linear'
 
-
         else:
-            # 采样
             type_f = 'nolinear'
-            #  三个点来模拟非线性函数不科学，所以采集第四个点
-            # 采点
-            random_x = self.sample_point(round_x, point_x)
+            random_x = self.sample_point(round_x, point_x)             # 采样， 三个点来模拟非线性函数不科学，所以采集第四个点
+
             # print('type(point_x):', type(point_x))
             point_x.append(random_x)
             flag = True
-            while flag:
-                # 首先要计算采样点出的一维函数精确值
 
-                x_exchange = self.exchange_point_1D(point_x, k)
+            while flag:
+                # 每找一个新的采样点我们要重新构建近似函数，来查看函数的精确度。
+
+                x_exchange = self.exchange_point_1D(point_x, k)         # 首先要计算采样点出的一维函数精确值
                 fx_2 = self.fun_value_1D(x_exchange)
+
                 # print('point_x:', point_x)
                 # print('fx_2:', fx_2)
+
                 index_arr = self.RBF_func_1D(point_x, fx_2)
                 # print('index_arr:', index_arr)
-
-            # 测试点，测试一阶函数和原函数（一阶）的近似程度 # 由一维变三维
+                '''
+                    由于随机选择一个点作为测试点来测试整个函数的精确度，是不准确的，所以我们选择两个点，
+                    当两个点的精确度同时满足要求是，这是我们认为整个近似函数的精确度已达到要求
+                '''
+                # 测试点1，测试一阶函数和原函数（一阶）的近似程度 # 由一维变三维
                 random_test_1 = self.sample_point(round_x, point_x)
                 x_test_1 = self.exchange_point_1D(list([random_test_1]), k)
-
                 # print('x_test:', x_test)
                 tmp_jinque_1 = self.fun_value_1D(x_test_1)
                 f_test_1 = round(tmp_jinque_1[0], 4)
@@ -286,24 +290,26 @@ class Rbf_Hdmr:
                 corr_err_1 = abs((f_test_1 - f_value_1) / f_test_1) * 100
                 # print(corr_err)
 
-            # 测试点，测试一阶函数和原函数（一阶）的近似程度 # 由一维变三维
+                # 测试点2，测试一阶函数和原函数（一阶）的近似程度 # 由一维变三维
                 random_test_2 = self.sample_point(round_x, point_x)
                 x_test_2 = self.exchange_point_1D(list([random_test_2]), k)
 
                 # print('x_test:', x_test)
                 tmp_jinque_2 = self.fun_value_1D(x_test_2)
                 f_test_2 = round(tmp_jinque_2[0], 4)
-
                 tmp_jinsi_2 = self.non_linear_func(index_arr, point_x, random_test_2)
                 f_value_2 = round(tmp_jinsi_2[0], 4)
                 # print('----2---:', f_test_2)
                 # print('----2---:', f_value_2)
                 #计算相对误差
                 corr_err_2 = abs((f_test_2 - f_value_2) / f_test_2) * 100
-                # print('corr_err_1:', corr_err_1)
-                # print('corr_err_2:', corr_err_2)
 
-                if corr_err_1 < 0.01 and corr_err_2 < 0.01:
+
+                if corr_err_1 <= 0.01 and corr_err_2 <= 0.01:
+                    print('random_test_1:', random_test_1, end=' ')
+                    print('random_test_2:', random_test_2)
+                    print('corr_err_1:', corr_err_1, end=' ')
+                    print('corr_err_2:', corr_err_2)
                     flag = False
 
 
@@ -317,50 +323,44 @@ class Rbf_Hdmr:
     # 计算一阶函数模型近似值
 
     def func_DEMO(self):
-        # 计算原函数的维度
-        m = len(self.X_round)
+        m = len(self.X_round)       # 计算原函数的维度
+        self.point_round = []        # 保存每个维度的采样点
+        self.f_values = []            # 保存每个一维函数对应采样点的函数值
+        self.type_fx = []           # 保存每个维度的一维函数的类型
+        self.xishu_arr = []         # 保存系数矩阵
 
-        # 保存每个维度的采样点
-        self.point_round = []
-
-        # 保存每个一维函数对应采样点的函数值
-        self.f_values = []
-
-        # 保存每个维度的一维函数的类型
-        self.type_fx = []
-
-        # 保存系数矩阵
-        self.xishu_arr = []
+        # 一种特殊情况
         if self.X_round[0] != self.X_round[1]:
-            print('函数的自变量取值区间不同')
-        # 这样写的前提是，没个自变量的取值区间是是一样的
-        round_x = self.X_round[0]
-        # 在自变量的取值区间的两个端点的邻近区间进行取值，来代表端点。
-        # 由于邻近区间的长度为（x - 0.01 * len, x + 0.01 *len)， 这说明，在采样时只要保存小数点后两位小数就可以了
+            print('函数的自变量取值区间不同---------------------------------------------------------------------结束游戏')
+
+        round_x = self.X_round[0]            # 这样写的前提是，每个自变量的取值区间是是一样的，要不然是要加循环的
+
+        # 在自变量的取值区间的两个端点的邻近区间进行取值，来代表端点。由于邻近区间的长度为（x - 0.01 * len, x + 0.01 *len)， 这说明，在采样时只要保存小数点后两位小数就可以了
         variable_range = abs(round_x[-1] - round_x[0])
-        # 最小值
-        left_x = round_x[0] + variable_range * 0.01
-        # 最大值
-        right_x = round_x[-1] - variable_range * 0.01
-        # left
+        left_x = round_x[0] + variable_range * 0.01      # 最小值
+        right_x = round_x[-1] - variable_range * 0.01     # 最大值
+
+        # left  保证采点与center cut 不同
         flag_left =True
-        left_point = 0
+        left_point = -np.inf
         while flag_left:
             left_point = round(random.uniform(round_x[0], left_x), 2)
             if left_point in self.x0:
                 left_point = round(random.uniform(round_x[0], left_x), 2)
             else:
                 flag_left =False
-        # right
+
+        # right 保证采点与center cut 不同
         flag_right = True
-        right_point = 0
+        right_point = -np.inf
         while flag_right:
             right_point = round(random.uniform(right_x, round_x[-1]), 2)
             if right_point in self.x0:
                 right_point = round(random.uniform(right_x, round_x[-1]), 2)
             else:
                 flag_right = False
-        point_x_begin = []
+
+        point_x_begin = []          #  新的采样端点
         point_x_begin.append(left_point)
         point_x_begin.append(right_point)
 
@@ -441,17 +441,19 @@ class Rbf_Hdmr:
 
             random_x[i] = round(random.uniform(self.X_round[i][0], self.X_round[i][1]), 2)
 
-        f_jinque = self.func_mode.f(random_x)   # 精确值
-        f_jinsi = self.func_1D(random_x)     # 近似值
+        f_jinque = round(self.func_mode.f(random_x), 4)   # 精确值
 
-        # 如果相对误差大于0.1，说明一阶近似不能达到有效精度，我们要进行二阶有效计算
-        corr_err = abs((f_jinque - f_jinsi[0]) / f_jinque) * 100
+        trmp = self.func_1D(random_x)    # 近似值
+        f_jinsi = round(trmp[0], 4)
+
+        # 如果相对误差大于0.01，说明一阶近似不能达到有效精度，我们要进行二阶有效计算
+        corr_err = abs((f_jinque - f_jinsi) / f_jinque) * 100
         print('测试一阶函数模型精度')
         print('random_x:', random_x)
         print('f_jinque:', f_jinque)
-        print('f_jinsi:', f_jinsi[0])
+        print('f_jinsi:', f_jinsi)
         print(corr_err)
-        if corr_err > 0.01:
+        if corr_err > 0.1:
             flag = False
         return flag
 
