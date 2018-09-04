@@ -10,7 +10,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 函数
-f_objective = Func_3d.sin_3d()
+f_objective = Func_3d.lizi_3d()
+
 x_round = f_objective.bounds
 
 input_dim = f_objective.input_dim

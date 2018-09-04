@@ -84,9 +84,17 @@ class GPGO:
         for i in range(n_eval):
             s_param = self._sampleParam()
             s_param_val = list(s_param.values())
+            flag = True
+            while flag:
+                if s_param_val in self.X:
+                    s_param = self._sampleParam()
+                    s_param_val = list(s_param.values())
+                else:
+                    flag = False
             self.X[i] = s_param_val
             # print('s_param_val:', s_param_val)
             self.y[i] = self.f(s_param_val)
+        # print('self.X:', self.X)
         self.GP.fit(self.X, self.y)
         self.tau = np.max(self.y)
         self.history.append(self.tau)
@@ -147,6 +155,7 @@ class GPGO:
         f_best = np.empty((n_start,))
         flag = True
         while flag:
+            # print('优化卡当')
             count = 0
             start_points_dict = [self._sampleParam() for i in range(n_start)]
             start_points_arr = np.array([list(s.values()) for s in start_points_dict])
@@ -165,7 +174,8 @@ class GPGO:
                     count = 1
             if count == 1:
                 flag = True
-            else: flag = False
+            else:
+                flag = False
 
 
         self.best = x_best[np.argmin(f_best)]
@@ -219,7 +229,7 @@ class GPGO:
         if not resume:
             self.init_evals = init_evals
             self._firstRun(self.init_evals)
-            # self.logger._printInit(self)
+            self.logger._printInit(self)
 
         # 定义一个空数组，用于保存每次迭代选择出的最优值
         self.shuzu = []
@@ -228,4 +238,4 @@ class GPGO:
 
             self._optimizeAcq(n_start=nstart)
             self.updateGP()
-            # self.logger._printCurrent(self)
+            self.logger._printCurrent(self)

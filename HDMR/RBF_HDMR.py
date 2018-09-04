@@ -1,10 +1,8 @@
 import numpy as np
 from numpy.linalg import inv
 import warnings
-
 import random
 from decimal import getcontext, Decimal
-
 warnings.filterwarnings('ignore')
 
 class Rbf_Hdmr:
@@ -27,7 +25,6 @@ class Rbf_Hdmr:
         self.f0 = self.func_mode.f(self.x0)
 
         return self.x0, self.f0
-
 
     def exchange_point_1D(self, round, k):
         '''
@@ -70,20 +67,20 @@ class Rbf_Hdmr:
         # print(m)
         for i in range(m):
             for j in range(m):
-                distance = xy[i] - xy[j]
-
-                if len(distance) == 1:
+                distance = xy[i] - xy[j]            # 如果xy为一位数组，则为对应元素相减，如果xy为多维数组，则为向量中对应元素相减
+                if len(distance) == 1:          # 一维情况
                     One = distance[0] ** 2
                     Two = np.log(np.sqrt(One))
-
-                elif len(distance) == 2:
-                    One = distance[0] ** 2 + distance[1] ** 2
+                elif len(distance) > 1:         # 多维情况
+                    # print('distance:', distance)
+                    One = 0
+                    for index in range(len(distance)):
+                        One += distance[index] ** 2
                     Two = np.log(np.sqrt(One))
 
                 if Two == -(np.inf):
                     Two = 0
                 A[i, j] = One * Two
-        # print(A)
         return A
 
     # 得到系数矩阵
@@ -93,26 +90,21 @@ class Rbf_Hdmr:
         :param xy:  表示某一维度上函数的采点值
         :param fxy: 与样本点的对应的一维函数值
         :return:
-
         '''
-
-        # 判断xy数组是几维数组
-        xy = np.array(xy_arr.copy())
+        xy = np.array(xy_arr.copy())            # 判断xy数组是几维数组
         a = xy.shape
-
-        fxy = list(f_xy.copy())
-        # 一维
-        if len(a) == 1:
+        fxy = list(f_xy.copy())         # 转化为列表，便于添加元素
+        if len(a) == 1:          # 如果是一维数组，将其变为二维列数组 N * 1 形式
             xy = xy.reshape(1, -1).T
 
-        A = self.A_func_1D(xy)
+        A = self.A_func_1D(xy)          # rbf 中的矩阵A
         n = np.shape(A)[1]
         # 加上线性的 p
         p_1 = np.ones(n).reshape(1, -1).T
         p_2 = xy
-        p = np.hstack((p_1, p_2))   # 按航合并，也就是列要相等
+        p = np.hstack((p_1, p_2))               # 按航合并，也就是行要相等
         m = p.shape[1]
-        zeros = np.zeros((m, m))
+        zeros = np.zeros((m, m))            # 全零矩阵
         B = np.vstack((p, zeros))
         xishu_arr = np.hstack((np.vstack((A, p.T)), B))
         fxy.extend(np.zeros(m))
@@ -209,6 +201,7 @@ class Rbf_Hdmr:
         # print('point_arr:', point_arr)
         # print('point:', point)
         flag = True
+        '''
         vari_range = (round_x[1] - round_x[0]) * 0.01
         while flag:
             flag_temp = -1
@@ -217,6 +210,12 @@ class Rbf_Hdmr:
                     flag_temp = 1
             # print('flage_temp:', flag_temp)
             if flag_temp == 1:
+                point = round(random.uniform(round_x[0], round_x[1]), 2)
+            else:
+                flag = False
+        '''
+        while flag:
+            if point in point_x:
                 point = round(random.uniform(round_x[0], round_x[1]), 2)
             else:
                 flag = False
@@ -265,16 +264,15 @@ class Rbf_Hdmr:
 
                 x_exchange = self.exchange_point_1D(point_x, k)         # 首先要计算采样点出的一维函数精确值
                 fx_2 = self.fun_value_1D(x_exchange)
-
-                # print('point_x:', point_x)
                 # print('fx_2:', fx_2)
 
-                index_arr = self.RBF_func_1D(point_x, fx_2)
+                index_arr = self.RBF_func_1D(point_x, fx_2)         # 函数系数，用于构建近似函数
                 # print('index_arr:', index_arr)
                 '''
                     由于随机选择一个点作为测试点来测试整个函数的精确度，是不准确的，所以我们选择两个点，
                     当两个点的精确度同时满足要求是，这是我们认为整个近似函数的精确度已达到要求
                 '''
+
                 # 测试点1，测试一阶函数和原函数（一阶）的近似程度 # 由一维变三维
                 random_test_1 = self.sample_point(round_x, point_x)
                 x_test_1 = self.exchange_point_1D(list([random_test_1]), k)
@@ -306,10 +304,10 @@ class Rbf_Hdmr:
 
 
                 if corr_err_1 <= 0.01 and corr_err_2 <= 0.01:
-                    print('random_test_1:', random_test_1, end=' ')
-                    print('random_test_2:', random_test_2)
-                    print('corr_err_1:', corr_err_1, end=' ')
-                    print('corr_err_2:', corr_err_2)
+                    # print('random_test_1:', random_test_1, end=' ')
+                    # print('random_test_2:', random_test_2)
+                    # print('corr_err_1:', corr_err_1, end=' ')
+                    # print('corr_err_2:', corr_err_2)
                     flag = False
 
 
@@ -321,8 +319,8 @@ class Rbf_Hdmr:
         return type_f, np.array(point_x), np.array(fx_2)
 
     # 计算一阶函数模型近似值
-
     def func_DEMO(self):
+
         m = len(self.X_round)       # 计算原函数的维度
         self.point_round = []        # 保存每个维度的采样点
         self.f_values = []            # 保存每个一维函数对应采样点的函数值
@@ -546,14 +544,14 @@ class Rbf_Hdmr:
         inter_arr = []
         for i in range(len(inter_ij_1)):
             # 精确值
-            f_jinque = self.func_mode.f(random_point[i])
+            f_jinque = round(self.func_mode.f(random_point[i]), 4)
             # 近似值
-            f_jinsi = self.func_1D(random_point[i])[0]
+            f_jinsi = round(self.func_1D(random_point[i])[0], 4)
             # print('f_jinque:', f_jinque)
             # print('f_jinsi:', f_jinsi)
-            if round(f_jinsi, 4) != round(f_jinque, 4):
+            if abs((f_jinsi - f_jinque) / f_jinque) * 100 > 0.1:
                 inter_arr.append(inter_ij_1[i])
-        # print(inter_arr)
+        print(inter_arr)
         return inter_arr
 
 
@@ -599,24 +597,25 @@ class Rbf_Hdmr:
         x_ij_point = []                # 相关变量的二维变量组合
         x_ij_value = []                # 相关变量的二维变量组合的函数值
         x_ij_xishu = []                # 相关变量的二维变量组合函数的系数矩阵
-        for i in range(len(inter_arr)):
-            # 指针，指向inter_arr[i] 在排列着中的位置
-            index_i = self.result_ij.index(inter_arr[i])         # [[0, 2]]
+        if len(inter_arr) != 0:
+            for i in range(len(inter_arr)):
+                # 指针，指向inter_arr[i] 在排列着中的位置
+                index_i = self.result_ij.index(inter_arr[i])         # [[0, 2]]
 
-            # 三维采样点
-            point_ij = self.result_point[index_i]                  # 2d -3d
+                # 三维采样点
+                point_ij = self.result_point[index_i]                  # 2d -3d
 
-            func_2D = self.func_value2D(point_ij, inter_arr[i], self.point_round, self.f_values)    # 计算函数值
+                func_2D = self.func_value2D(point_ij, inter_arr[i], self.point_round, self.f_values)    # 计算函数值
 
-            sample_ij = self.resulti_j_arr[index_i]                  #  求函数值所需要的两个变量的排列组合的点
+                sample_ij = self.resulti_j_arr[index_i]                  #  求函数值所需要的两个变量的排列组合的点
 
-            xishu_2D = self.RBF_func_1D(sample_ij, func_2D)                  # 系数矩阵
+                xishu_2D = self.RBF_func_1D(sample_ij, func_2D)                  # 系数矩阵
 
-            x_ij_point.append(sample_ij)
+                x_ij_point.append(sample_ij)
 
-            x_ij_value.append(func_2D)
+                x_ij_value.append(func_2D)
 
-            x_ij_xishu.append(xishu_2D)
+                x_ij_xishu.append(xishu_2D)
 
         return np.array(x_ij_index), np.array(x_ij_point), np.array(x_ij_value), np.array(x_ij_xishu)
 

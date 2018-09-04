@@ -8,55 +8,58 @@ from pyGPGO.acquisition import Acquisition
 from pyGPGO.covfunc import matern52
 import warnings
 
-f_objective = Func_Nd.xinba(input_dim=10)
+f_objective = Func_Nd.xxxx()
 rbf_hdmr = RBF_HDMR.Rbf_Hdmr(f_objective)
 
 # 其变量取值区间
 x_round = f_objective.bounds
 
 # 计算x0,f0。第一种选择方法，随机选取
-
 x0, f0 = rbf_hdmr.x0_fx0()
-print(x0)
-print(f0)
+print('center cut point:', x0)
+print('center cut function', f0)
 
 point_round, f_values, type_fx, xishu_arr = rbf_hdmr.func_DEMO()
 
-# print(point_round)
-# print(f_values)
-# print(type_fx)
-# print(xishu_arr)
+print('**************************一阶函数模型参数*******************************')
+
+# print('采集点', point_round)
+# print('采集点的函数值', f_values)
+# print('函数类型', type_fx)
+# print('系数矩阵', xishu_arr)
 # 查看一阶模型的精度情况
 is_True = rbf_hdmr.simulation_func()
-# print(is_True)
+print(is_True)
 
 if is_True == False:
     # 由于我们规定，任何一种变量只能与其他某一种变量发生一次相关系，即 没一个变量的下标在x_ij_index数组中最多可以出现一次
     x_ij_index, x_ij_point, x_ij_value, x_ij_xishu = rbf_hdmr.f_Two_index()
 
-    # print(x_ij_index)
+    # print('x_ij_index:', x_ij_index)
     # print(x_ij_point)
     # print(x_ij_value)
     # print(x_ij_xishu)
+
 
     # 先判断哪些自变量是与其他自变量无关的
     # 整合相关自变量的数组
-    x_inter = []
-    for index in range(len(x_ij_index)):
-        x_inter.append(list(x_ij_index[index]))
-
-    x_inter = np.unique(x_inter)
-    # print(x_inter)
-    # print(x_ij_index)
-    # print(x_ij_point)
-    # print(x_ij_value)
-    # print(x_ij_xishu)
+    if len(x_ij_index) != 0:
+        x_inter = []
+        for index in range(len(x_ij_index)):
+            x_inter.append(list(x_ij_index[index]))
+        x_inter = np.unique(x_inter)
+        # print(x_inter)
+        # print(x_ij_index)
+        # print(x_ij_point)
+        # print(x_ij_value)
+        # print(x_ij_xishu)
     print('*********************************函数模型搭建完毕************************************')
 
 
 def func_first_order(type_f=None, xishu_f=None, point_f=None):
     # 独立变量的线性、非线性判断
     if type_f == 'linear':
+        print('执行一阶线性优化')
         # 左端点函数值
         f_left = rbf_hdmr.func_1D_value(x_round[0][0], type=type_f, xishu=xishu_f,
                                         point_sample=point_f)
@@ -72,6 +75,7 @@ def func_first_order(type_f=None, xishu_f=None, point_f=None):
 
     # 独立变量的非线性情况
     else:
+        print('执行一阶非线性函数优化')
         # 非一维线性函数最好的办法采用BO来找函数最小值
         def f(x):
             return -(rbf_hdmr.func_1D_value(x, type=type_f, xishu=xishu_f, point_sample=point_f))
@@ -82,7 +86,7 @@ def func_first_order(type_f=None, xishu_f=None, point_f=None):
         round_x = (x_round[0][0], x_round[0][1])
         param = {'x': ('cont', round_x)}
         gpgo = GPGO(gp, acq, f, param)
-        gpgo.run(max_iter=5, nstart=1)
+        gpgo.run(max_iter=10, nstart=10)
         res, f_min_i = gpgo.getResult()
 
         print('res:', res)
@@ -95,7 +99,7 @@ def is_xiangguan_2D(second_order=None):
     # 例如：denpend_func_2: [[0, 1, 2], [1, 2], [2]] 表示 second_order中第一项与第二项、第三项共享元素，第一项和第二项共享元素
     xishu = []
     i = 0
-    print('the type of second_order:',type(second_order))
+    # print('the type of second_order:',type(second_order))
     while i < len(second_order):
         index_x = []
         for inx in xishu:
@@ -170,13 +174,15 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
         for index in range(len(second_order)):
             x_inter.append(list(second_order[index]))
         x_inter = np.unique(x_inter)
+    print('first_order:', first_order)
+    print('second_order:', second_order)
     # 定义一个数组，用来存放需要和二阶函数一起计算的一阶函数自变量代号
     # 如果所有的一阶函数和二阶函数无关的话，该数组为空，且下面代码自动求取最小值，并根据坐标添加到对应的自变量取值和函数最小值中
     denpend_point_1D = []
     if len(first_order) != 0:
         for i in first_order:
             # print(i)
-            print('x_inter:', x_inter)
+            # print('x_inter:', x_inter)
             # 独立情况
             if i not in x_inter:
                 type_fx_i = type_fx[i]
@@ -196,8 +202,8 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
     接下来要判断一阶函数和哪些二阶函数具有共同的自变量
         1.判断二阶函数中有哪些共项
     '''
-    print('denpend_point_1D:', denpend_point_1D)
-    print('second_order:', second_order)
+    # print('denpend_point_1D:', denpend_point_1D)
+    # print('second_order:', second_order)
     # 解决二维情况，分解为二维相关和二维无关
     X = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
          'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -706,15 +712,20 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
 import random
 
 num = 50
-a = len(type_fx) + len(x_ij_index) - 1
-print(a)
+# a 表示的是所有函数累加起来的长度，a -1 表示函数下标
+a = -1
+if is_True == True or len(x_ij_index) == 0:
+    a = len(type_fx) - 1
+else:
+    a = len(type_fx) + len(x_ij_index) - 1
+print('*****************************************', a, '*****************************************')
 
 x_ending = x0
 f_ending = f0
 for i in range(num):
     print('**********************************第', i, '次迭代**********************************')
     random_arr = []
-    random_k = 3
+    random_k = 5
     for j in range(random_k):
         temp = random.randint(0, a)
         flag = True
@@ -729,7 +740,7 @@ for i in range(num):
     print('---------------------------random_arr-----------------------:', init_arr)
     # print('x0:', x0)
     xy_min, func_min = func_model(index_ij=init_arr, x_min=x0.copy(), func_min=f0, max_iter_i=20, nstart_i=10)
-    # print('xy_min:', xy_min)
+    print('xy_min:', xy_min)
     f_ending_temp = f_objective.f(xy_min)
     if f_ending > f_ending_temp:
         f_ending = f_ending_temp

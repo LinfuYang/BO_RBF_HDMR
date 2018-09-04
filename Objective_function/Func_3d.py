@@ -38,9 +38,9 @@ class sin_3d:
         bounds: 函数各维度的取值区间，用二维数组表示
         '''
 
-        self.input_dim = 3
+        self.input_dim = 10
         if bounds is None:
-            self.bounds = [[-1, 1]] * 3
+            self.bounds = [[-1, 1]] * 10
         else:
             self.bounds = bounds
         self.min = [0, 0, 0]
@@ -56,24 +56,24 @@ class sin_3d:
         x1 = x[0]
         x2 = x[1]
         x3 = x[2]
-        # x4 = x[3]
-        # x5 = x[4]
-        # x6 = x[5]
-        # x7 = x[6]
-        # x8 = x[7]
-        # x9 = x[8]
-        # x10 = x[9]
+        x4 = x[3]
+        x5 = x[4]
+        x6 = x[5]
+        x7 = x[6]
+        x8 = x[7]
+        x9 = x[8]
+        x10 = x[9]
 
         return abs(x1 * np.sin(x1) + 0.1 * x1) + \
                abs(x2 * np.sin(x2) + 0.1 * x2) + \
-               abs(x3 * np.sin(x3) + 0.1 * x3)
-               # abs(x4 * np.sin(x4) + 0.1 * x4) + \
-               # abs(x5 * np.sin(x5) + 0.1 * x5) + \
-               # abs(x6 * np.sin(x6) + 0.1 * x6) + \
-               # abs(x7 * np.sin(x7) + 0.1 * x7) + \
-               # abs(x8 * np.sin(x8) + 0.1 * x8) + \
-               # abs(x9 * np.sin(x9) + 0.1 * x9) + \
-               # abs(x10 * np.sin(x10) + 0.1 * x10)
+               abs(x3 * np.sin(x3) + 0.1 * x3) + \
+               abs(x4 * np.sin(x4) + 0.1 * x4) + \
+               abs(x5 * np.sin(x5) + 0.1 * x5) + \
+               abs(x6 * np.sin(x6) + 0.1 * x6) + \
+               abs(x7 * np.sin(x7) + 0.1 * x7) + \
+               abs(x8 * np.sin(x8) + 0.1 * x8) + \
+               abs(x9 * np.sin(x9) + 0.1 * x9) + \
+               abs(x10 * np.sin(x10) + 0.1 * x10)
 
 
 class x1x2x3:

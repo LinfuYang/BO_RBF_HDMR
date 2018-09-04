@@ -42,7 +42,7 @@ param = OrderedDict()
 for temp in X_name:
     param[temp] = ('cont', x_round[0])
 gpgo = GPGO(gp, acq, f, param)
-gpgo.run(max_iter=10, nstart=10)
+gpgo.run(max_iter=200, nstart=100)
 res, f_min_xy = gpgo.getResult()
 
 
