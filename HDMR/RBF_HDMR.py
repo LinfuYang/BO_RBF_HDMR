@@ -20,8 +20,18 @@ class Rbf_Hdmr:
         m = len(self.X_round)
         self.x0 = np.zeros((m))
         for i in range(m):
+            '''
+            #  方法一 初始点采用所有维度中心位置的近似点
             vari_range = self.X_round[i][1] - self.X_round[i][0]
             self.x0[i] = round(self.X_round[i][0] + vari_range / 2 + random.uniform(-vari_range * 0.01, vari_range * 0.01), 2)
+            '''
+            # 方法二，随机选择一个点作为centercut
+            self.x0[i] = round(random.uniform(self.X_round[i][0], self.X_round[i][1]), 2)
+
+            # 方法三 初始化多个函数取值点，然后选择靠近函数均值的所对应的取值点作为center cut
+
+
+
         self.f0 = self.func_mode.f(self.x0)
 
         return self.x0, self.f0
@@ -114,7 +124,7 @@ class Rbf_Hdmr:
         round_values = []
         for index in values:
             x = index[0]
-            y = float(round(x, 4))
+            y = float(round(x, 6))
             if y == -0.0:
                 y = 0
             round_values.append(y)
@@ -144,19 +154,20 @@ class Rbf_Hdmr:
     # 求解一维非线性函数的近似值
     def non_linear_func(self, coefs, round_x, x_i):
         '''
-        :param coefs:  系数矩阵
-        :param round_x: 代表采点矩阵
+        :param coefs:  beta + alpha
+        :param round_x: 代表采点矩阵个数
         :param x_i: 未知量，
         :return:
         '''
         if type(x_i) is not list:
             x_i = list([x_i])
             # print('x_i:', x_i)
-        m = len(round_x)
-        n = len(coefs)
-        beta = coefs[:m]
-        alpha = coefs[m - n:]
-        p_x = list([1.0])
+
+        m = len(round_x)          # 采样点个数
+        n = len(coefs)          # beta + alpha 长度
+        beta = coefs[:m]                # beta
+        alpha = coefs[m - n:]           # alpha 多项式
+        p_x = list([1.0])               # 多项式
         p_x.extend(x_i)
 
         ln = len(x_i)
@@ -192,7 +203,7 @@ class Rbf_Hdmr:
 
         f_value = beta.dot(f_One_x) + alpha.dot(p_x)
 
-        return np.array([round(f_value[0], 4)])
+        return np.array([round(f_value[0], 6)])
 
     # 在函数是非线性函数的基础上进行抽样根据函数是不是线性函数进行抽样
     def sample_point(self,  round_x, point_x):
@@ -278,10 +289,10 @@ class Rbf_Hdmr:
                 x_test_1 = self.exchange_point_1D(list([random_test_1]), k)
                 # print('x_test:', x_test)
                 tmp_jinque_1 = self.fun_value_1D(x_test_1)
-                f_test_1 = round(tmp_jinque_1[0], 4)
+                f_test_1 = round(tmp_jinque_1[0], 6)
 
                 tmp_jinsi_1 = self.non_linear_func(index_arr, point_x, random_test_1)
-                f_value_1 = round(tmp_jinsi_1[0], 4)
+                f_value_1 = round(tmp_jinsi_1[0], 6)
                 # print('---1---:', f_test_1)
                 # print('---1---:', f_value_1)
                 #计算相对误差
@@ -294,15 +305,16 @@ class Rbf_Hdmr:
 
                 # print('x_test:', x_test)
                 tmp_jinque_2 = self.fun_value_1D(x_test_2)
-                f_test_2 = round(tmp_jinque_2[0], 4)
+                f_test_2 = round(tmp_jinque_2[0], 6)
                 tmp_jinsi_2 = self.non_linear_func(index_arr, point_x, random_test_2)
-                f_value_2 = round(tmp_jinsi_2[0], 4)
+                f_value_2 = round(tmp_jinsi_2[0], 6)
                 # print('----2---:', f_test_2)
                 # print('----2---:', f_value_2)
                 #计算相对误差
                 corr_err_2 = abs((f_test_2 - f_value_2) / f_test_2) * 100
 
 
+                # 偶尔放弃一个测试点
                 if corr_err_1 <= 0.01 and corr_err_2 <= 0.01:
                     # print('random_test_1:', random_test_1, end=' ')
                     # print('random_test_2:', random_test_2)
@@ -439,10 +451,10 @@ class Rbf_Hdmr:
 
             random_x[i] = round(random.uniform(self.X_round[i][0], self.X_round[i][1]), 2)
 
-        f_jinque = round(self.func_mode.f(random_x), 4)   # 精确值
+        f_jinque = round(self.func_mode.f(random_x), 6)   # 精确值
 
         trmp = self.func_1D(random_x)    # 近似值
-        f_jinsi = round(trmp[0], 4)
+        f_jinsi = round(trmp[0], 6)
 
         # 如果相对误差大于0.01，说明一阶近似不能达到有效精度，我们要进行二阶有效计算
         corr_err = abs((f_jinque - f_jinsi) / f_jinque) * 100
@@ -450,7 +462,7 @@ class Rbf_Hdmr:
         print('random_x:', random_x)
         print('f_jinque:', f_jinque)
         print('f_jinsi:', f_jinsi)
-        print(corr_err)
+        print('corr_err:', corr_err)
         if corr_err > 0.1:
             flag = False
         return flag
@@ -544,14 +556,14 @@ class Rbf_Hdmr:
         inter_arr = []
         for i in range(len(inter_ij_1)):
             # 精确值
-            f_jinque = round(self.func_mode.f(random_point[i]), 4)
+            f_jinque = round(self.func_mode.f(random_point[i]), 6)
             # 近似值
-            f_jinsi = round(self.func_1D(random_point[i])[0], 4)
+            f_jinsi = round(self.func_1D(random_point[i])[0], 6)
             # print('f_jinque:', f_jinque)
             # print('f_jinsi:', f_jinsi)
             if abs((f_jinsi - f_jinque) / f_jinque) * 100 > 0.1:
                 inter_arr.append(inter_ij_1[i])
-        print(inter_arr)
+        # print(inter_arr)
         return inter_arr
 
 

@@ -1,5 +1,5 @@
 from HDMR import RBF_HDMR
-from Objective_function import Func_3d
+from Objective_function import Func_Nd
 from collections import OrderedDict
 import numpy as np
 from pyGPGO.GPGO import GPGO
@@ -8,7 +8,7 @@ from pyGPGO.acquisition import Acquisition
 from pyGPGO.covfunc import matern52
 import warnings
 
-f_objective = Func_3d.lizi_3d()
+f_objective = Func_Nd.Gaussian_mixture_function(input_dim=5)
 rbf_hdmr = RBF_HDMR.Rbf_Hdmr(f_objective)
 
 # 其变量取值区间
@@ -24,21 +24,21 @@ point_round, f_values, type_fx, xishu_arr = rbf_hdmr.func_DEMO()
 print('**************************一阶函数模型参数*******************************')
 
 print('采集点', point_round)
-print('采集点的函数值', f_values)
-print('函数类型', type_fx)
-print('系数矩阵', xishu_arr)
+# print('采集点的函数值', f_values)
+print('type_fx', type_fx)
+# print('系数矩阵', xishu_arr)
 # 查看一阶模型的精度情况
 is_True = rbf_hdmr.simulation_func()
-print(is_True)
+print('is_True:', is_True)
 
 if is_True == False:
     # 由于我们规定，任何一种变量只能与其他某一种变量发生一次相关系，即 没一个变量的下标在x_ij_index数组中最多可以出现一次
     x_ij_index, x_ij_point, x_ij_value, x_ij_xishu = rbf_hdmr.f_Two_index()
 
-    # print('x_ij_index:', x_ij_index)
+    print('x_ij_index:', x_ij_index)
     # print(x_ij_point)
     # print(x_ij_value)
-    print(x_ij_xishu)
+    # print(x_ij_xishu)
 
 
     # 先判断哪些自变量是与其他自变量无关的
@@ -82,11 +82,11 @@ def func_first_order(type_f=None, xishu_f=None, point_f=None):
 
         sexp = matern52()
         gp = GaussianProcess(sexp)
-        acq = Acquisition(mode='UCB')
+        acq = Acquisition(mode='ExpectedImprovement')
         round_x = (x_round[0][0], x_round[0][1])
         param = {'x': ('cont', round_x)}
         gpgo = GPGO(gp, acq, f, param)
-        gpgo.run(max_iter=1, nstart=1)
+        gpgo.run(max_iter=20, nstart=10)
         res, f_min_i = gpgo.getResult()
 
         print('res:', res)
@@ -176,6 +176,13 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
         x_inter = np.unique(x_inter)
     print('first_order:', first_order)
     print('second_order:', second_order)
+    print('x_inter:', x_inter)
+
+    # 定义优化维度
+    temp_first = first_order.copy()
+    temp_first.extend(x_inter)
+    index_dimen = np.unique(temp_first)
+
     # 定义一个数组，用来存放需要和二阶函数一起计算的一阶函数自变量代号
     # 如果所有的一阶函数和二阶函数无关的话，该数组为空，且下面代码自动求取最小值，并根据坐标添加到对应的自变量取值和函数最小值中
     denpend_point_1D = []
@@ -332,7 +339,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                     # print('ij:', ij)
                     for x in range(len(len_ij)):
                         x_min[len_ij[x]] = res[x]
-                    print('x_min:', x_min)
+                    # print('x_min:', x_min)
                     func_min += max_xy
 
                 # 说明该一阶函数二阶相关函数独立
@@ -401,7 +408,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                     # print('ij:', ij)
                     for x in range(len(len_ij)):
                         x_min[len_ij[x]] = res[x]
-                    print('x_min:', x_min)
+                    # print('x_min:', x_min)
                     func_min += max_xy
 
 
@@ -524,7 +531,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                         x_min[len_ij[x]] = res[x]
 
                     func_min += max_xy
-                    print('x_min:', x_min)
+                    # print('x_min:', x_min)
                     # 说明该一阶函数二阶相关函数独立
                 else:
                     print('执行二阶非相关函数的优化')
@@ -590,7 +597,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                     # print('ij:', ij)
                     for x in range(len(len_ij)):
                         x_min[len_ij[x]] = res[x]
-                    print('x_min:', x_min)
+                    # print('x_min:', x_min)
                     func_min += max_xy
 
     # 只存在二维相关性问题
@@ -609,7 +616,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                 ij_index = x_ij_index[index]
                 ij_xishu = x_ij_xishu[index]
                 ij_point = x_ij_point[index]
-                print('ij_index:', ij_index)
+                # print('ij_index:', ij_index)
                 X_name = [X[ij_index[0]], X[ij_index[1]]]
                 def f(X_name):
                     return -(rbf_hdmr.func_2D_value(X_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
@@ -631,7 +638,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                     x_min[ij_index[hiahia]] = res[hiahia]
 
                 func_min += max_xy
-                print('x_min:', x_min)
+                # print('x_min:', x_min)
                 # print('f_min:', func_min)
         # 解决二维相关变量问题
         if len(depend_2D) != 0:
@@ -694,7 +701,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                 # print('ij:', ij)
                 for x in range(len(len_ij)):
                     x_min[len_ij[x]] = res[x]
-                print('x_min:', x_min)
+                # print('x_min:', x_min)
                 func_min += max_xy
     # 现在只剩下一维和二维相关的两种函数，但是并不知道谁和谁相关
     '''
@@ -707,25 +714,25 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                 即存在一阶函数，还存在二阶函数
     '''
 
-    return x_min, func_min
+    return x_min, func_min, index_dimen
 
 import random
 
-num = 50
+num = 100
 # a 表示的是所有函数累加起来的长度，a -1 表示函数下标
 a = -1
 if is_True == True or len(x_ij_index) == 0:
     a = len(type_fx) - 1
 else:
     a = len(type_fx) + len(x_ij_index) - 1
-print(a)
+print('最后一个子函数的下标是：', a, )
 
 x_ending = x0
 f_ending = f0
 for i in range(num):
     print('**********************************第', i, '次迭代**********************************')
     random_arr = []
-    random_k = 2
+    random_k = 3
     for j in range(random_k):
         temp = random.randint(0, a)
         flag = True
@@ -739,15 +746,38 @@ for i in range(num):
     init_arr = sorted(random_arr)
     print('---------------------------random_arr-----------------------:', init_arr)
     # print('x0:', x0)
-    xy_min, func_min = func_model(index_ij=init_arr, x_min=x0.copy(), func_min=f0, max_iter_i=20, nstart_i=10)
-    # print('xy_min:', xy_min)
-    f_ending_temp = f_objective.f(xy_min)
-    if f_ending > f_ending_temp:
-        f_ending = f_ending_temp
-        x_ending = xy_min
+    xy_min, func_min, index_dimen = func_model(index_ij=init_arr, x_min=x_ending.copy(), func_min=f0, max_iter_i=50, nstart_i=20)
+    print('xy_min:', xy_min)
+
+    '''
+    xy_min为当前最优值，已知最优值，再加上最新优化的几个维度，这种情况有可能会陷入局部最值，如何跳出局部最值，我们采用以一定概率P随机选择，非优化维度的最优坐标的做法
+
+    '''
+    pro = 0.30  # 我们设置跳出概率为0.3
+    rand_pro = round(random.uniform(0, 1), 2)
+    print('rand_pro:', rand_pro)
+    print('index_dimen:', index_dimen)
+
+    if rand_pro > pro:  # 采用当前最佳组合
+        x_ending_temp = xy_min
+        f_ending_temp = f_objective.f(x_ending_temp)
+        if f_ending_temp < f_ending:
+            x_ending = x_ending_temp
+            f_ending = f_ending_temp
 
 
+    #  当满足概率要求时，就随机选择一些点，作为最优值， 这样可以跳出局部解
+    else:           # 随机数填充
+        listxy = np.copy(xy_min)
+        for index in range(f_objective.input_dim):
+            if index not in index_dimen:  # 将非本次优化的维度的最优值点用取值区间内的随机数填充
+                listxy[index] = round(random.uniform(x_round[index][0], x_round[index][1]), 8)
+        x_ending_temp = listxy
 
+        f_ending_temp = f_objective.f(x_ending_temp)
+        if f_ending_temp < f_ending:
+            x_ending = x_ending_temp
+            f_ending = f_ending_temp
 
-print('x_ending:', x_ending)
-print('f_ending:', f_ending)
+    print('x_ending:', x_ending)
+    print('f_ending:', f_ending)

@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 函数
-f_objective = Func_Nd.xinba(input_dim=10)
+f_objective = Func_Nd.Gaussian_mixture_function(input_dim=2)
 x_round = f_objective.bounds
 
 input_dim = f_objective.input_dim
