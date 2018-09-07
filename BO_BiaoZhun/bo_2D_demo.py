@@ -13,7 +13,9 @@ warnings.filterwarnings('ignore')
 f_objective = Func_Nd.Gaussian_mixture_function(input_dim=5)
 x_round = f_objective.bounds
 
-X = [2] * 5
+X = [2.11562,     2.071789,    2.081907,    2.031969,    1.99582466]
 print(-f_objective.f(X))
+X2 = [2] * 5
+print(-f_objective.f(X2))
 
 
