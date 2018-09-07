@@ -824,7 +824,7 @@ def  f_bo(num_iter=100):
 single_iter = 100
 
 # 为了求均值，一共迭代了多少次
-average_iter = 1
+average_iter = 20
 
 x_average = np.zeros(single_iter)
 f_average = np.zeros(single_iter+1)

@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 函数
-f_objective = Func_Nd.Gaussian_mixture_function(input_dim=2)
+f_objective = Func_Nd.Gaussian_mixture_function(input_dim=5)
 x_round = f_objective.bounds
 
 input_dim = f_objective.input_dim
@@ -22,8 +22,12 @@ input_dim = f_objective.input_dim
 X = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
      'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 X_name = X[:input_dim]
+
+
+
 def f(X_name):
     return -f_objective.f(X_name)
+
 sexp = matern52()
 gp = GaussianProcess(sexp)
 '''
@@ -45,21 +49,10 @@ gpgo = GPGO(gp, acq, f, param)
 gpgo.run(max_iter=200, nstart=100)
 res, f_min_xy = gpgo.getResult()
 
+f_list = gpgo.return_max_f()
 
 
-
-f_ture = f_objective.fmin
-
-
-
-print('原函数精确值最小值：', f_ture)
-print('函数最小值输入变量：', res)
-print('函数最小值近似结果：', f_min_xy)
-
-
-if f_ture != 0:
-    corr_err = abs((f_ture - f_min_xy) / f_ture) * 100
-    print('corr_err:', corr_err)
+print('f_list:', f_list)
 
 
 

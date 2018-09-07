@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
-f_objective = Func_Nd.Gaussian_mixture_function(input_dim=5)
+f_objective = Func_Nd.Gaussian_mixture_function(input_dim=10)
 rbf_hdmr = RBF_HDMR.Rbf_Hdmr(f_objective)
 
 # 其变量取值区间
@@ -815,12 +815,12 @@ plt.plot(f_average, 'ro')
 plt.xlabel('the number of iters')
 plt.ylabel('the max value of func')
 plt.title('the func of GMF(not jump)')
-plt.savefig('../results_not_jump/GMF_not_jump_1.jpg')
+plt.savefig('../results_not_jump/GMF_not_jump_10.jpg')
 plt.show()
 
 
 df_1 = pd.DataFrame(data=f_average)
-df_1.to_csv('../results_not_jump/GMF_not_jump_1.csv', sep='\t')
+df_1.to_csv('../results_not_jump/GMF_not_jump_10.csv', sep='\t')
 
 
 
