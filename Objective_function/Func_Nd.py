@@ -152,8 +152,10 @@ class Schwefel_Func:
     def f(self, X):
         f_1 = 0
         for j in range(self.input_dim):
+            f_2 = 0
             for i in range(0, j + 1):
-                    f_1 += X[i] ** 2
+                    f_2 += X[i]
+            f_1 += f_2 ** 2
 
         return f_1
 

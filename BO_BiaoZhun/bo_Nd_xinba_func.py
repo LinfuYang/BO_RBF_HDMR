@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 函数
-f_objective = Func_Nd.Gaussian_mixture_function(input_dim=5)
+f_objective = Func_Nd.Schwefel_Func(input_dim=5)
 x_round = f_objective.bounds
 
 input_dim = f_objective.input_dim
@@ -51,15 +51,15 @@ def f_bo(single_iter_bo=100):
     gpgo = GPGO(gp, acq, f, param)
     gpgo.run(max_iter=single_iter_bo, nstart=100)
     res, f_min_xy = gpgo.getResult()
-    f_list = [0]
+    f_list = []
     f_list.extend(gpgo.return_max_f())
     print('f_list:', f_list)
     return f_list
 
 
-single_iter = 1
-average_iter = 1
-f_average = np.zeros(single_iter+2)
+single_iter = 100
+average_iter = 20
+f_average = np.zeros(single_iter+1)
 
 
 for i in range(average_iter):
@@ -74,13 +74,15 @@ plt.plot(f_average, 'b')
 plt.plot(f_average, 'ro')
 plt.xlabel('the number of iters')
 plt.ylabel('the max value of func')
-plt.title('the func of GMF(not jump)')
-plt.savefig('../results_normal/GMF_bo_10.jpg')
+plt.title('the func of SW(Bo 5 Dimensions)')
+new_xticks = np.linspace(0, single_iter,  11)
+plt.xticks(new_xticks)
+plt.savefig('../results_normal/SW_bo_5.jpg')
 plt.show()
 
 
 df_1 = pd.DataFrame(data=f_average)
-df_1.to_csv('../results_normal/GMF_bo_10.csv', sep='\t')
+df_1.to_csv('../results_normal/SW_bo_5.csv', sep='\t')
 
 
 print('f_average:', f_average)

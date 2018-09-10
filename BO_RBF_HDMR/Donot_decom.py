@@ -806,7 +806,7 @@ for i in range(average_iter):
     f_array = f_bo(num_iter=single_iter)
     f_average += np.array(f_array)
 
-f_average = -1 * f_average / average_iter
+f_average = f_average / average_iter
 
 plt.figure()
 

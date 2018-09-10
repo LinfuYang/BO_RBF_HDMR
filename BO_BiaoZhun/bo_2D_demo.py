@@ -11,10 +11,10 @@ warnings.filterwarnings('ignore')
 
 # 函数
 dim = 10
-f_objective = Func_Nd.Gaussian_mixture_function(input_dim=dim)
+f_objective = Func_Nd.Schwefel_Func(input_dim=dim)
 x_round = f_objective.bounds
 
-X2 = [2] * dim
-print(-f_objective.f(X2))
+X2 = [0.5] * dim
+print(f_objective.f(X2))
 
 
