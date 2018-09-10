@@ -1,7 +1,8 @@
 from Objective_function import Func_Nd
-
-from collections import OrderedDict
 import numpy as np
+from collections import OrderedDict
+import pandas as pd
+import matplotlib.pyplot as plt
 from pyGPGO.GPGO import GPGO
 from pyGPGO.surrogates.GaussianProcess import GaussianProcess
 from pyGPGO.acquisition import Acquisition
@@ -28,31 +29,61 @@ X_name = X[:input_dim]
 def f(X_name):
     return -f_objective.f(X_name)
 
-sexp = matern52()
-gp = GaussianProcess(sexp)
-'''
-    'ExpectedImprovement': self.ExpectedImprovement,
-    'IntegratedExpectedImprovement': self.IntegratedExpectedImprovement,
-    'ProbabilityImprovement': self.ProbabilityImprovement,
-    'IntegratedProbabilityImprovement': self.IntegratedProbabilityImprovement,
-    'UCB': self.UCB,
-    'IntegratedUCB': self.IntegratedUCB,
-    'Entropy': self.Entropy,
-    'tExpectedImprovement': self.tExpectedImprovement,
-    'tIntegratedExpectedImprovement': self.tIntegratedExpectedImprovement
-'''
-acq = Acquisition(mode='ExpectedImprovement')
-param = OrderedDict()
-for temp in X_name:
-    param[temp] = ('cont', x_round[0])
-gpgo = GPGO(gp, acq, f, param)
-gpgo.run(max_iter=200, nstart=100)
-res, f_min_xy = gpgo.getResult()
+def f_bo(single_iter_bo=100):
 
-f_list = gpgo.return_max_f()
+    sexp = matern52()
+    gp = GaussianProcess(sexp)
+    '''
+        'ExpectedImprovement': self.ExpectedImprovement,
+        'IntegratedExpectedImprovement': self.IntegratedExpectedImprovement,
+        'ProbabilityImprovement': self.ProbabilityImprovement,
+        'IntegratedProbabilityImprovement': self.IntegratedProbabilityImprovement,
+        'UCB': self.UCB,
+        'IntegratedUCB': self.IntegratedUCB,
+        'Entropy': self.Entropy,
+        'tExpectedImprovement': self.tExpectedImprovement,
+        'tIntegratedExpectedImprovement': self.tIntegratedExpectedImprovement
+    '''
+    acq = Acquisition(mode='ExpectedImprovement')
+    param = OrderedDict()
+    for temp in X_name:
+        param[temp] = ('cont', x_round[0])
+    gpgo = GPGO(gp, acq, f, param)
+    gpgo.run(max_iter=single_iter_bo, nstart=100)
+    res, f_min_xy = gpgo.getResult()
+    f_list = [0]
+    f_list.extend(gpgo.return_max_f())
+    print('f_list:', f_list)
+    return f_list
 
 
-print('f_list:', f_list)
+single_iter = 1
+average_iter = 1
+f_average = np.zeros(single_iter+2)
+
+
+for i in range(average_iter):
+    f_array = f_bo(single_iter_bo=single_iter)
+    f_average += np.array(f_array)
+
+f_average = f_average / average_iter
+
+plt.figure()
+
+plt.plot(f_average, 'b')
+plt.plot(f_average, 'ro')
+plt.xlabel('the number of iters')
+plt.ylabel('the max value of func')
+plt.title('the func of GMF(not jump)')
+plt.savefig('../results_normal/GMF_bo_10.jpg')
+plt.show()
+
+
+df_1 = pd.DataFrame(data=f_average)
+df_1.to_csv('../results_normal/GMF_bo_10.csv', sep='\t')
+
+
+print('f_average:', f_average)
 
 
 

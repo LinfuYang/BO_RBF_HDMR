@@ -214,7 +214,7 @@ class GPGO:
         return list(res_d.values()), -self.GP.y[argtau]
 
     def return_max_f(self):
-        return self.GP.y
+        return self.history
 
     def run(self, max_iter=10, init_evals=3, resume=False, nstart = 100):
         """

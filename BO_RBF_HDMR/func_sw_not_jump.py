@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
-f_objective = Func_Nd.Gaussian_mixture_function(input_dim=10)
+f_objective = Func_Nd.Schwefel_Func(input_dim=10)
 rbf_hdmr = RBF_HDMR.Rbf_Hdmr(f_objective)
 
 # 其变量取值区间
@@ -42,7 +42,6 @@ if is_True == False:
     # print(x_ij_point)
     # print(x_ij_value)
     # print(x_ij_xishu)
-
 
     # 先判断哪些自变量是与其他自变量无关的
     # 整合相关自变量的数组
@@ -79,6 +78,7 @@ def func_first_order(type_f=None, xishu_f=None, point_f=None):
     # 独立变量的非线性情况
     else:
         print('执行一阶非线性函数优化')
+
         # 非一维线性函数最好的办法采用BO来找函数最小值
         def f(x):
             return -(rbf_hdmr.func_1D_value(x, type=type_f, xishu=xishu_f, point_sample=point_f))
@@ -96,6 +96,7 @@ def func_first_order(type_f=None, xishu_f=None, point_f=None):
         x_min = res[0]
 
     return x_min, f_min_i
+
 
 def is_xiangguan_2D(second_order=None):
     # second_order用来存放变量存在共项元素的关系
@@ -244,7 +245,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
             # print('unique_2d:----------------', unique_2D)
             # 求解depend_2D数组中所对应的second——order中数组去掉相同项
             # 查看每一列，找到数值为1的项，说明该一维函数和对应的二维函数相关。
-            flag_arr = np.array([[-1]*len(unique_2D)] * len(denpend_point_1D))
+            flag_arr = np.array([[-1] * len(unique_2D)] * len(denpend_point_1D))
 
             for row in range(len(denpend_point_1D)):
                 for col in range(len(unique_2D)):
@@ -296,6 +297,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                     X_name = []
                     for x in range(len(len_ij)):
                         X_name.append(X[len_ij[x]])
+
                     def f(X_name):
                         f_index = 0
                         # 一阶函数
@@ -308,7 +310,8 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                                 if f_1_depend[i] == len_ij[x]:
                                     point_index = x
                             x_name = X_name[point_index]
-                            f_index += -(rbf_hdmr.func_1D_value(x_name, type=type_fx_1, xishu=xishu_arr_1, point_sample=point_round_1))
+                            f_index += -(rbf_hdmr.func_1D_value(x_name, type=type_fx_1, xishu=xishu_arr_1,
+                                                                point_sample=point_round_1))
 
                         for index in range(len(depend_2D[row])):
                             ij_index = ij_index_i[index]
@@ -325,7 +328,8 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                                     right = x
                             x_name = [X_name[left], X_name[right]]
                             # print('x_name:', x_name)
-                            f_index += -(rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
+                            f_index += -(
+                                rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
                         return f_index
 
                     param = OrderedDict()
@@ -394,7 +398,8 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                             #  二阶函数
                             x_name = [X_name[left], X_name[right]]
                             # print('x_name:', x_name)
-                            f_index += -(rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
+                            f_index += -(
+                                rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
                         return f_index
 
                     param = OrderedDict()
@@ -413,7 +418,6 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                         x_min[len_ij[x]] = res[x]
                     # print('x_min:', x_min)
                     func_min += max_xy
-
 
         if len(independ_2D) != 0:
             #  二维不相关函数变量
@@ -500,7 +504,8 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                                 if f_1_depend[i] == len_ij[x]:
                                     point_index = x
                             x_name = X_name[point_index]
-                            f_index += -(rbf_hdmr.func_1D_value(x_name,type=type_fx_1,xishu=xishu_arr_1,point_sample=point_round_1))
+                            f_index += -(rbf_hdmr.func_1D_value(x_name, type=type_fx_1, xishu=xishu_arr_1,
+                                                                point_sample=point_round_1))
                         for index in range(len(independ_2D[row])):
                             ij_index = ij_index_i[index]
                             ij_xishu = ij_xishu_i[index]
@@ -516,8 +521,10 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                                     right = x
                             x_name = [X_name[left], X_name[right]]
                             # print('x_name:', x_name)
-                            f_index += -(rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
+                            f_index += -(
+                                rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
                         return f_index
+
                     param = OrderedDict()
                     for m in range(len(len_ij)):
                         # print('x_round[ij_index_i[i]]', x_round[len_ij[m]])
@@ -584,8 +591,10 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                                     right = x
                             x_name = [X_name[left], X_name[right]]
                             # print('x_name:', x_name)
-                            f_index += -(rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
+                            f_index += -(
+                                rbf_hdmr.func_2D_value(x_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
                         return f_index
+
                     param = OrderedDict()
                     for m in range(len(len_ij)):
                         # print('x_round[ij_index_i[i]]', x_round[len_ij[m]])
@@ -621,6 +630,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                 ij_point = x_ij_point[index]
                 # print('ij_index:', ij_index)
                 X_name = [X[ij_index[0]], X[ij_index[1]]]
+
                 def f(X_name):
                     return -(rbf_hdmr.func_2D_value(X_name, index_ij=ij_index, xishu=ij_xishu, points=ij_point))
 
@@ -668,6 +678,7 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
                 X_name = []
                 for x in range(len(len_ij)):
                     X_name.append(X[len_ij[x]])
+
                 def f(X_name):
 
                     f_index = 0
@@ -719,9 +730,8 @@ def func_model(index_ij=None, x_min=None, func_min=None, max_iter_i=10, nstart_i
 
     return x_min, func_min, index_dimen
 
+
 def f_bo(num_iter=100):
-
-
     num = num_iter
     # a 表示的是所有函数累加起来的长度，a -1 表示函数下标
     a = -1
@@ -734,7 +744,7 @@ def f_bo(num_iter=100):
     x_ending = x0
     f_ending = f0
 
-    f_list = [0]
+    f_list = []
 
     for i in range(num):
         print('**********************************第', i, '次迭代**********************************')
@@ -753,12 +763,13 @@ def f_bo(num_iter=100):
         init_arr = sorted(random_arr)
         print('---------------------------random_arr-----------------------:', init_arr)
         # print('x0:', x0)
-        xy_min, func_min, index_dimen = func_model(index_ij=init_arr, x_min=x_ending.copy(), func_min=f0, max_iter_i=20, nstart_i=10)
+        xy_min, func_min, index_dimen = func_model(index_ij=init_arr, x_min=x_ending.copy(), func_min=f0, max_iter_i=20,
+                                                   nstart_i=10)
         print('xy_min:', xy_min)
 
         '''
         xy_min为当前最优值，已知最优值，再加上最新优化的几个维度，这种情况有可能会陷入局部最值，如何跳出局部最值，我们采用以一定概率P随机选择，非优化维度的最优坐标的做法
-    
+
         '''
         pro = 0.30  # 我们设置跳出概率为0.3
         rand_pro = round(random.uniform(0, 1), 2)
@@ -773,7 +784,7 @@ def f_bo(num_iter=100):
                 f_ending = f_ending_temp
 
         #  当满足概率要求时，就随机选择一些点，作为最优值， 这样可以跳出局部解
-        else:           # 随机数填充
+        else:  # 随机数填充
             listxy = np.copy(xy_min)
             for index in range(f_objective.input_dim):
                 if index not in index_dimen:  # 将非本次优化的维度的最优值点用取值区间内的随机数填充
@@ -785,28 +796,27 @@ def f_bo(num_iter=100):
                 x_ending = x_ending_temp
                 f_ending = f_ending_temp
 
-
         f_list.append(f_ending)
 
         print('历史记录每次迭代的最优值')
-        print('f_list:', f_list)
+    print('f_list:', f_list)
 
     return f_list
 
 
 # 单次迭代的最大次数
-single_iter = 300
+single_iter = 20
 
 # 为了求均值，一共迭代了多少次
-average_iter = 1
+average_iter = 20
 
-f_average = np.zeros(single_iter+1)
+f_average = np.zeros((single_iter))
 
 for i in range(average_iter):
     f_array = f_bo(num_iter=single_iter)
     f_average += np.array(f_array)
 
-f_average = -1 * f_average / average_iter
+f_average = f_average / average_iter
 
 plt.figure()
 
@@ -814,15 +824,14 @@ plt.plot(f_average, 'b')
 plt.plot(f_average, 'ro')
 plt.xlabel('the number of iters')
 plt.ylabel('the max value of func')
-plt.title('the func of GMF(not jump)')
-plt.savefig('../results_not_jump/GMF_not_jump_10.jpg')
+plt.title('the func of SW(not jump)')
+new_xticks = np.linspace(0, single_iter,  11)
+plt.xticks(new_xticks)
+plt.savefig('../results_not_jump/SW_not_jump_10.jpg')
 plt.show()
 
-
 df_1 = pd.DataFrame(data=f_average)
-df_1.to_csv('../results_not_jump/GMF_not_jump_10.csv', sep='\t')
-
-
+df_1.to_csv('../results_not_jump/SW_not_jump_10.csv', sep='\t', header=None)
 
 print('------------------------the ending results_jump------------------')
 print(f_average)

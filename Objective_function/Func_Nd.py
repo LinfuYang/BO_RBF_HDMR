@@ -107,9 +107,10 @@ class  Gaussian_mixture_function:
         # sigma2
         if sigma2 != None:
             self.sigma2 = sigma2
+
         else:
             self.sigma2 = np.mat(np.eye(self.input_dim))
-
+            # print('self.sigma2.I:', self.sigma2.I)
         self.func_name = 'Gaussian_mixture_function'
         self.x_min = [2] * self.input_dim
 
@@ -126,11 +127,35 @@ class  Gaussian_mixture_function:
 
         np_1_two = np.exp((-1 / 2) * ((X - self.mu1) * (self.sigma1.I) * (X - self.mu1).T))
         np_2_two = np.exp((-1 / 2) * ((X - self.mu2) * (self.sigma2.I) * (X - self.mu2).T))
+        # print('self.sigma2.I:', self.sigma2.I)
 
 
         f_value = (1 / np_1_one) * np_1_two + 0.5 * (1 / np_2_one) * np_2_two
 
         return -f_value[0, 0] * 100
+
+
+
+class Schwefel_Func:
+
+    def __init__(self, input_dim=None, bounds=None):
+
+        if input_dim == None:
+            self.input_dim = 10
+        else:
+            self.input_dim = input_dim
+        if bounds == None:
+            self.bounds = [[-1, 1]] * self.input_dim
+        else:
+            self.bounds = bounds
+
+    def f(self, X):
+        f_1 = 0
+        for j in range(self.input_dim):
+            for i in range(0, j + 1):
+                    f_1 += X[i] ** 2
+
+        return f_1
 
 
 
