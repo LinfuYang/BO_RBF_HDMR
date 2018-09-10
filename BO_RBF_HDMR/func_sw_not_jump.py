@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
-f_objective = Func_Nd.Schwefel_Func(input_dim=10)
+f_objective = Func_Nd.Schwefel_Func(input_dim=5)
 rbf_hdmr = RBF_HDMR.Rbf_Hdmr(f_objective)
 
 # 其变量取值区间
@@ -805,7 +805,7 @@ def f_bo(num_iter=100):
 
 
 # 单次迭代的最大次数
-single_iter = 20
+single_iter = 100
 
 # 为了求均值，一共迭代了多少次
 average_iter = 20

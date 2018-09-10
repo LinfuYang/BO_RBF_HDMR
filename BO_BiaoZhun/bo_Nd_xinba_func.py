@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 函数
-f_objective = Func_Nd.Schwefel_Func(input_dim=5)
+f_objective = Func_Nd.Schwefel_Func(input_dim=10)
 x_round = f_objective.bounds
 
 input_dim = f_objective.input_dim
@@ -66,7 +66,7 @@ for i in range(average_iter):
     f_array = f_bo(single_iter_bo=single_iter)
     f_average += np.array(f_array)
 
-f_average = f_average / average_iter
+f_average = -1 * f_average / average_iter
 
 plt.figure()
 
@@ -74,15 +74,15 @@ plt.plot(f_average, 'b')
 plt.plot(f_average, 'ro')
 plt.xlabel('the number of iters')
 plt.ylabel('the max value of func')
-plt.title('the func of SW(Bo 5 Dimensions)')
+plt.title('the func of SW(Bo 10 Dimensions)')
 new_xticks = np.linspace(0, single_iter,  11)
 plt.xticks(new_xticks)
-plt.savefig('../results_normal/SW_bo_5.jpg')
+plt.savefig('../results_normal/SW_bo_10.jpg')
 plt.show()
 
 
 df_1 = pd.DataFrame(data=f_average)
-df_1.to_csv('../results_normal/SW_bo_5.csv', sep='\t')
+df_1.to_csv('../results_normal/SW_bo_10.csv', sep='\t')
 
 
 print('f_average:', f_average)
